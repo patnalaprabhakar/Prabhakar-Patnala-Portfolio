@@ -4,7 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prabhakar Portfolio | Senior Designer</title>
+    <title>Prabhakar Portfolio | Principal Product Designer</title>
+    
+    <!-- SEO & Social Meta Tags -->
+    <meta name="description" content="Principal Product Designer & Visual Storyteller specializing in high-fidelity digital experiences.">
+    <meta property="og:title" content="Prabhakar Portfolio | Principal Product Designer">
+    <meta property="og:description" content="Designing connections through intentional digital narratives.">
+    <meta property="og:type" content="website">
+    <meta name="theme-color" content="#050505">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,7 +40,6 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Luxury Scrollbar */
         ::-webkit-scrollbar {
             width: 3px;
         }
@@ -49,7 +56,6 @@
             letter-spacing: -0.04em;
         }
 
-        /* Glassmorphism Evolution */
         .glass-premium {
             background: rgba(12, 12, 12, 0.4);
             backdrop-filter: blur(24px) saturate(180%);
@@ -75,7 +81,6 @@
                               linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
         }
 
-        /* Cinematic Animations */
         .text-reveal-mask {
             clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
             animation: mask-reveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -102,18 +107,23 @@
         }
     </style>
     <script type="importmap">
-    {
-      "imports": {
-        "react": "https://esm.sh/react@^19.2.3",
-        "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-        "react/": "https://esm.sh/react@^19.2.3/",
-        "@google/genai": "https://esm.sh/@google/genai@^1.37.0"
-      }
-    }
-    </script>
+{
+  "imports": {
+    "react": "https://esm.sh/react@19.0.0",
+    "react-dom": "https://esm.sh/react-dom@19.0.0",
+    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
+    "@google/genai": "https://esm.sh/@google/genai@1.37.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
+  }
+}
+</script>
 </head>
 <body class="selection:bg-blue-600/30 selection:text-white">
     <div class="bg-noise"></div>
     <div id="root" class="relative z-10"></div>
+    <script type="module" src="index.tsx"></script>
 </body>
 </html>

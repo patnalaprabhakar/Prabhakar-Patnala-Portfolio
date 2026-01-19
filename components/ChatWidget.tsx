@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { chatWithAssistant } from '../services/geminiService';
-import { Message, PortfolioData } from '../types';
+import { chatWithAssistant } from '../services/geminiService.ts';
+import { Message, PortfolioData } from '../types.ts';
 
 interface ChatWidgetProps {
   data: PortfolioData;
@@ -44,7 +44,6 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ data }) => {
 
   return (
     <div className="fixed bottom-10 right-10 z-[120]">
-      {/* Chat Window */}
       {isOpen && (
         <div className="absolute bottom-24 right-0 w-[380px] sm:w-[420px] max-h-[600px] glass rounded-[2.5rem] shadow-[0_50px_100px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden border border-white/20 transition-all duration-300">
           <div className="p-6 bg-white/[0.03] border-b border-white/10 flex justify-between items-center">
@@ -107,7 +106,6 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ data }) => {
         </div>
       )}
 
-      {/* Toggle Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className={`w-16 h-16 rounded-[1.5rem] shadow-2xl transition-all duration-500 flex items-center justify-center transform ${

@@ -1,6 +1,6 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { PortfolioData } from "../types";
+import { PortfolioData } from "../types.ts";
 
 /**
  * Chat with the AI assistant about the portfolio.

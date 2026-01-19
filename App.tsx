@@ -1,14 +1,74 @@
 
 import React, { useState, useEffect } from 'react';
-import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import ChatWidget from './components/ChatWidget';
-import LoginModal from './components/LoginModal';
-import EditProjectModal from './components/EditProjectModal';
-import EditProfileModal from './components/EditProfileModal';
-import ProjectPreviewModal from './components/ProjectPreviewModal';
-import { PORTFOLIO_DATA } from './constants';
-import { Project, PortfolioData } from './types';
+import Navbar from './components/Navbar.tsx';
+import Hero from './components/Hero.tsx';
+import ChatWidget from './components/ChatWidget.tsx';
+import LoginModal from './components/LoginModal.tsx';
+import EditProjectModal from './components/EditProjectModal.tsx';
+import EditProfileModal from './components/EditProfileModal.tsx';
+import ProjectPreviewModal from './components/ProjectPreviewModal.tsx';
+import { PORTFOLIO_DATA } from './constants.ts';
+import { Project, PortfolioData } from './types.ts';
+
+// Helper to ensure Google Drive links are in the most reliable "Thumbnail" format
+const convertDriveLink = (url: string): string => {
+  if (!url) return url;
+  
+  let fileId = null;
+  
+  const driveRegex = /(?:https?:\/\/)?(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)|docs\.google\.com\/file\/d\/|drive\.google\.com\/uc\?export=view&id=)([a-zA-Z0-9_-]+)/;
+  const match = url.match(driveRegex);
+  if (match) fileId = match[1];
+  
+  if (!fileId && url.includes('id=')) {
+    const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (idMatch) fileId = idMatch[1];
+  }
+
+  return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1200` : url;
+};
+
+const SmartImage: React.FC<{ 
+  src: string; 
+  alt: string; 
+  className?: string; 
+  fallbackInitials?: string;
+  loading?: "lazy" | "eager";
+}> = ({ src, alt, className, fallbackInitials, loading = "lazy" }) => {
+  const [error, setError] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const correctedSrc = convertDriveLink(src);
+
+  useEffect(() => {
+    setError(false);
+    setLoaded(false);
+  }, [src]);
+
+  if (error || !correctedSrc) {
+    return (
+      <div className={`${className} bg-gradient-to-br from-blue-600/10 to-indigo-600/10 flex items-center justify-center border border-white/5`}>
+        <span className="text-4xl font-heading font-bold text-white/10 select-none">
+          {fallbackInitials || alt.charAt(0)}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <img 
+      src={correctedSrc} 
+      alt={alt} 
+      referrerPolicy="no-referrer"
+      className={`${className} transition-opacity duration-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+      onLoad={() => setLoaded(true)}
+      onError={() => {
+        console.error("Image asset failed to resolve:", correctedSrc);
+        setError(true);
+      }}
+      loading={loading}
+    />
+  );
+};
 
 const ProjectCard: React.FC<{ 
   project: Project; 
@@ -30,17 +90,14 @@ const ProjectCard: React.FC<{
         </button>
       )}
 
-      {/* Cinematic Asset Display */}
       <div className="relative aspect-[4/3] overflow-hidden bg-[#0d0d0d]">
-        <img 
+        <SmartImage 
           src={project.imageUrls[0]} 
           alt={project.title} 
-          className="w-full h-full object-cover transition-all duration-[1500ms] scale-[1.05] group-hover:scale-100 grayscale-[40%] group-hover:grayscale-0 opacity-80 group-hover:opacity-100"
-          loading="lazy"
+          className="w-full h-full object-cover scale-[1.05] group-hover:scale-100 grayscale-[40%] group-hover:grayscale-0 opacity-80 group-hover:opacity-100"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent opacity-90 group-hover:opacity-40 transition-opacity duration-700"></div>
         
-        {/* Floating Tag */}
         <div className="absolute bottom-8 left-8 flex gap-2 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-700">
           {project.tags.slice(0, 1).map(tag => (
             <span key={tag} className="px-4 py-2 bg-white/10 backdrop-blur-xl border border-white/10 rounded-full text-[9px] font-black uppercase tracking-widest text-white">
@@ -50,7 +107,6 @@ const ProjectCard: React.FC<{
         </div>
       </div>
 
-      {/* Refined Metadata Area */}
       <div className="p-10 flex-1 flex flex-col">
         <h3 className="text-3xl font-heading font-bold text-white mb-4 tracking-tighter group-hover:text-blue-400 transition-colors duration-500">
           {project.title}
@@ -80,10 +136,14 @@ const App: React.FC = () => {
   const [data, setData] = useState<PortfolioData>(PORTFOLIO_DATA);
 
   useEffect(() => {
-    const saved = localStorage.getItem('pp_portfolio_v10');
-    if (saved) setData(JSON.parse(saved));
-    const adminSession = localStorage.getItem('pp_admin');
-    if (adminSession === 'true') setIsAdmin(true);
+    try {
+      const saved = localStorage.getItem('pp_portfolio_v10');
+      if (saved) setData(JSON.parse(saved));
+      const adminSession = localStorage.getItem('pp_admin');
+      if (adminSession === 'true') setIsAdmin(true);
+    } catch (e) {
+      console.error("Storage load error", e);
+    }
   }, []);
 
   const handleLogin = (password: string) => {
@@ -125,6 +185,8 @@ const App: React.FC = () => {
   const graphicProjects = data.projects.filter(p => p.tags.some(t => ['Graphic Design', 'Branding'].includes(t)));
   const uiProjects = data.projects.filter(p => !graphicProjects.includes(p));
 
+  const initials = data.name.split(' ').map(n => n[0]).join('');
+
   return (
     <div className="min-h-screen bg-[#050505] text-white pb-20 overflow-hidden font-sans">
       <Navbar 
@@ -140,15 +202,19 @@ const App: React.FC = () => {
 
         <div className="max-w-[1440px] mx-auto px-8 md:px-16 lg:px-24">
           
-          {/* THE MANIFESTO / ABOUT */}
           <section id="about" className="py-40 md:py-60 border-t border-white/5">
             <div className="grid lg:grid-cols-12 gap-24 items-start">
               <div className="lg:col-span-5 relative">
-                 <div className="aspect-[4/5] rounded-[48px] overflow-hidden glass-premium p-4 shadow-2xl">
-                    <img src={data.profileImage} alt={data.name} className="w-full h-full object-cover rounded-[36px] grayscale hover:grayscale-0 transition-all duration-[2000ms] ease-out hover:scale-105" />
+                 <div className="aspect-[4/5] rounded-[48px] overflow-hidden glass-premium p-4 shadow-2xl bg-[#0a0a0a]">
+                    <SmartImage 
+                      src={data.profileImage} 
+                      alt={data.name} 
+                      className="w-full h-full object-cover rounded-[36px] grayscale hover:grayscale-0 ease-out hover:scale-105"
+                      fallbackInitials={initials}
+                      loading="eager"
+                    />
                  </div>
                  
-                 {/* Floating Meta Stats */}
                  <div className="absolute -bottom-10 -right-10 glass-premium p-10 rounded-[40px] shadow-2xl border border-white/10 hidden xl:block">
                     <div className="flex gap-12">
                        <div>
@@ -193,7 +259,6 @@ const App: React.FC = () => {
             </div>
           </section>
 
-          {/* WORK ARCHIVE */}
           <section id="projects" className="py-40 md:py-60 border-t border-white/5">
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-16 mb-40">
               <div className="max-w-3xl">
@@ -219,7 +284,6 @@ const App: React.FC = () => {
               )}
             </div>
 
-            {/* UI/UX Focus */}
             <div className="mb-60">
               <div className="flex items-center gap-10 mb-24">
                  <span className="text-6xl md:text-8xl font-heading font-bold text-white/5">01</span>
@@ -240,7 +304,6 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Brand Identity Focus */}
             <div>
               <div className="flex items-center gap-10 mb-24">
                  <span className="text-6xl md:text-8xl font-heading font-bold text-white/5">02</span>
@@ -262,7 +325,6 @@ const App: React.FC = () => {
             </div>
           </section>
 
-          {/* TIMELINE SECTION */}
           <section id="experience" className="py-40 md:py-60 border-t border-white/5">
             <div className="grid lg:grid-cols-12 gap-32">
               <div className="lg:col-span-5 sticky top-40 h-fit">
@@ -302,7 +364,6 @@ const App: React.FC = () => {
             </div>
           </section>
 
-          {/* CAPABILITIES */}
           <section id="skills" className="py-40 md:py-60 border-t border-white/5">
              <div className="grid lg:grid-cols-12 gap-32">
                 <div className="lg:col-span-4">
@@ -330,7 +391,6 @@ const App: React.FC = () => {
              </div>
           </section>
 
-          {/* FINAL CTA */}
           <section id="contact" className="py-40 md:py-60 border-t border-white/5 text-center relative overflow-hidden">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-600/5 rounded-full blur-[180px] pointer-events-none"></div>
             

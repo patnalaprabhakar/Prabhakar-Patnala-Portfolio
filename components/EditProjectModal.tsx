@@ -27,20 +27,31 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onClose, o
   const [assetStatus, setAssetStatus] = useState<'idle' | 'validating' | 'valid' | 'invalid'>('idle');
   const [isAiLoading, setIsAiLoading] = useState(false);
 
+  // Reliable Google Drive Direct View Conversion
   const convertDriveLink = (url: string): string => {
-    if (!url || !url.includes('drive.google.com')) return url;
-    let fileId = '';
-    const dMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    if (dMatch && dMatch[1]) fileId = dMatch[1];
-    else if (idMatch && idMatch[1]) fileId = idMatch[1];
+    if (!url) return url;
+    
+    let fileId = null;
+    const driveRegex = /(?:https?:\/\/)?(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)|docs\.google\.com\/file\/d\/|drive\.google\.com\/uc\?export=view&id=)([a-zA-Z0-9_-]+)/;
+    const match = url.match(driveRegex);
+    if (match) fileId = match[1];
+    
+    if (!fileId && url.includes('id=')) {
+      const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (idMatch) fileId = idMatch[1];
+    }
+    
+    // Thumbnail Endpoint is far more reliable for <img> tags as it bypasses the "too large to scan" page.
     return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1200` : url;
   };
 
   useEffect(() => {
     const currentUrl = imageUrls[focusedIndex];
-    if (currentUrl && currentUrl.trim() !== '') setAssetStatus('validating');
-    else setAssetStatus('idle');
+    if (currentUrl && currentUrl.trim() !== '') {
+      setAssetStatus('validating');
+    } else {
+      setAssetStatus('idle');
+    }
   }, [imageUrls, focusedIndex]);
 
   const handleAiSummarize = async () => {
@@ -103,7 +114,7 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onClose, o
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center px-4 bg-black/95 backdrop-blur-md">
-      <div className="w-full max-w-2xl glass rounded-[2.5rem] shadow-2xl relative overflow-hidden border border-white/10 max-h-[90vh] flex flex-col">
+      <div className="w-full max-w-2xl glass rounded-[2.5rem] shadow-2xl relative overflow-hidden border border-white/10 max-h-[90vh] flex flex-col text-white">
         {/* Header */}
         <div className="p-8 border-b border-white/10 flex justify-between items-center bg-white/5">
           <div className="flex items-center gap-3">
@@ -160,7 +171,8 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onClose, o
                    {assetStatus === 'invalid' && (
                      <div className="absolute inset-0 flex flex-col items-center justify-center p-8 bg-gray-900">
                         <div className="w-12 h-12 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center mb-4"><svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg></div>
-                        <p className="text-[10px] text-gray-500 uppercase tracking-widest">Restricted Asset</p>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest text-center">Restricted Asset or Invalid Link</p>
+                        <p className="text-[8px] text-red-400/60 uppercase tracking-widest mt-2 text-center px-6">Ensure Drive permissions are set to 'Anyone with the link'</p>
                      </div>
                    )}
                  </>
@@ -201,11 +213,15 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, onClose, o
           </div>
 
           <div className="space-y-4">
-            <div className="flex justify-between items-center"><label className="text-[9px] font-bold uppercase tracking-widest text-gray-500 ml-1">Asset Registry</label><button type="button" onClick={handleAddImageUrl} className="text-[8px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-lg border border-emerald-400/20 hover:bg-emerald-400 hover:text-white transition-all">+ Register New Link</button></div>
+            <div className="flex justify-between items-center">
+              <label className="text-[9px] font-bold uppercase tracking-widest text-gray-500 ml-1">Asset Registry</label>
+              <button type="button" onClick={handleAddImageUrl} className="text-[8px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-lg border border-emerald-400/20 hover:bg-emerald-400 hover:text-white transition-all">+ Register New Link</button>
+            </div>
+            <p className="text-[8px] text-gray-600 font-bold uppercase tracking-[0.2em] px-2 italic">Tip: Paste your Drive Sharing Link. We'll optimize it automatically.</p>
             <div className="space-y-3">
               {imageUrls.map((url, idx) => (
                 <div key={idx} className="flex gap-2">
-                  <input type="text" value={url} onFocus={() => setFocusedIndex(idx)} onChange={(e) => handleImageUrlChange(idx, e.target.value)} className={`flex-1 bg-white/5 border ${focusedIndex === idx ? 'border-emerald-500/50' : 'border-white/10'} rounded-xl px-4 py-3 text-[9px] font-mono text-white transition-all`} placeholder="Direct/Drive link..." />
+                  <input type="text" value={url} onFocus={() => setFocusedIndex(idx)} onChange={(e) => handleImageUrlChange(idx, e.target.value)} className={`flex-1 bg-white/5 border ${focusedIndex === idx ? 'border-emerald-500/50' : 'border-white/10'} rounded-xl px-4 py-3 text-[9px] font-mono text-white transition-all`} placeholder="Paste Drive Sharing Link..." />
                   <button type="button" onClick={() => handleRemoveImageUrl(idx)} className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all"><svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                 </div>
               ))}

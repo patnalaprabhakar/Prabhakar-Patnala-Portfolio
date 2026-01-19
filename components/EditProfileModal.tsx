@@ -15,16 +15,24 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ data, onClose, onSa
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [suggestion, setSuggestion] = useState<string | null>(null);
 
+  // Reliable Google Drive Direct View Conversion
   const convertDriveLink = (url: string): string => {
-    if (!url || !url.includes('drive.google.com')) return url;
-    let fileId = '';
-    const dMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    if (dMatch && dMatch[1]) fileId = dMatch[1];
-    else {
+    if (!url) return url;
+    
+    let fileId = null;
+    
+    // Support standard IDs, sharing links, and direct uc/view links
+    const driveRegex = /(?:https?:\/\/)?(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)|docs\.google\.com\/file\/d\/|drive\.google\.com\/uc\?export=view&id=)([a-zA-Z0-9_-]+)/;
+    const match = url.match(driveRegex);
+    if (match) fileId = match[1];
+    
+    if (!fileId && url.includes('id=')) {
       const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-      if (idMatch && idMatch[1]) fileId = idMatch[1];
+      if (idMatch) fileId = idMatch[1];
     }
-    return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : url;
+    
+    // Thumbnail Endpoint is far more reliable for <img> tags as it bypasses the "too large to scan" page.
+    return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1200` : url;
   };
 
   const handleAiSuggestion = async (type: 'bio' | 'experience' | 'skills', index?: number) => {
@@ -78,7 +86,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ data, onClose, onSa
 
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center px-4 bg-black/95 backdrop-blur-md">
-      <div className="w-full max-w-4xl glass rounded-[2.5rem] shadow-2xl relative overflow-hidden border border-white/20 h-[85vh] flex flex-col">
+      <div className="w-full max-w-4xl glass rounded-[2.5rem] shadow-2xl relative overflow-hidden border border-white/20 h-[85vh] flex flex-col text-white">
         {/* Header */}
         <div className="p-8 border-b border-white/10 flex justify-between items-center bg-white/5">
           <div className="flex items-center gap-4">
@@ -166,16 +174,33 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ data, onClose, onSa
                 <textarea rows={5} value={formData.about} onChange={(e) => setFormData({...formData, about: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-emerald-500 transition-all text-sm leading-relaxed" />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Mastery (Experience)</label>
+                  <input type="text" value={formData.yearsExperience} onChange={(e) => setFormData({...formData, yearsExperience: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 transition-all font-mono text-xs" placeholder="e.g. 8+" />
+                </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Availability Badge</label>
                   <input type="text" value={formData.availabilityStatus} onChange={(e) => setFormData({...formData, availabilityStatus: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-emerald-500 transition-all font-mono text-xs" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Profile Image URL</label>
-                  <input type="text" value={formData.profileImage} onChange={(e) => setFormData({...formData, profileImage: convertDriveLink(e.target.value)})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-emerald-500 transition-all font-mono text-xs" />
+                  <input 
+                    type="text" 
+                    value={formData.profileImage} 
+                    onChange={(e) => {
+                      const inputVal = e.target.value.trim();
+                      const optimizedUrl = convertDriveLink(inputVal);
+                      setFormData({...formData, profileImage: optimizedUrl});
+                    }} 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-emerald-500 transition-all font-mono text-xs" 
+                    placeholder="Paste Drive Link..."
+                  />
                 </div>
               </div>
+              <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest bg-emerald-400/5 p-4 rounded-xl border border-emerald-400/10">
+                Registry Notice: Set Drive sharing to 'Anyone with the link' and paste the link here. We'll automatically optimize it for public display.
+              </p>
 
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Resume / CV Resource URL</label>
