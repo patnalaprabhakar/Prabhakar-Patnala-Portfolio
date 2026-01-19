@@ -2,91 +2,82 @@
 import React from 'react';
 
 interface HeroProps {
-  isAdmin?: boolean;
-  onEdit?: () => void;
   data: {
     name: string;
     title: string;
     heroHeadline: string;
     availabilityStatus: string;
-    resumeUrl: string;
   }
 }
 
-const Hero: React.FC<HeroProps> = ({ isAdmin, onEdit, data }) => {
-  const headlineLines = [
-    { text: "Designing", gradient: false },
-    { text: "Connections through", gradient: true },
-    { text: "Interfaces", gradient: false }
-  ];
-
+const Hero: React.FC<HeroProps> = ({ data }) => {
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      const offset = 100;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
-      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+      window.scrollTo({ top: element.offsetTop - 120, behavior: 'smooth' });
     }
   };
 
   return (
-    <section className="relative min-h-[85vh] flex flex-col items-center justify-center pt-24 pb-20 px-6 overflow-hidden">
-      {/* Background Decor */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl aspect-square bg-blue-600/5 rounded-full blur-[100px] pointer-events-none opacity-40"></div>
-
-      <div className="relative z-10 text-center w-full max-w-6xl mx-auto flex flex-col items-center">
-        
-        {/* Availability Badge - Slightly smaller */}
-        <div className="inline-flex items-center gap-2 px-5 py-2.5 mb-10 glass rounded-full border border-white/10 shadow-xl backdrop-blur-2xl animate-in slide-in-from-top duration-700">
-          <span className="relative flex h-1.5 w-1.5">
+    <section className="relative min-h-screen flex flex-col items-center justify-center pt-20 px-6 overflow-hidden">
+      {/* Immersive Depth Layers - Calibrated for Subtlety */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute top-[10%] left-[10%] w-[60vw] h-[60vw] bg-blue-600/5 rounded-full blur-[180px] animate-blob-slow"></div>
+        <div className="absolute bottom-[10%] right-[10%] w-[50vw] h-[50vw] bg-indigo-500/5 rounded-full blur-[160px] animate-blob-slow" style={{animationDelay: '-5s'}}></div>
+        <div className="absolute inset-0 bg-grid opacity-20"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-[#050505] via-transparent to-[#050505]"></div>
+      </div>
+      
+      <div className="relative z-10 text-center w-full max-w-7xl flex flex-col items-center">
+        {/* Editorial Status Badge */}
+        <div className="inline-flex items-center gap-3 px-6 py-2.5 mb-16 rounded-full glass-premium border-white/5 shadow-2xl animate-fade-in">
+          <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
           </span>
-          <span className="label-luxury text-blue-400 text-[8px] tracking-[0.4em] font-bold">{data.availabilityStatus}</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">{data.availabilityStatus}</span>
         </div>
         
-        {/* Editorial Headline - Reduced Size */}
-        <h1 className="flex flex-col mb-10 font-heading font-bold tracking-tighter text-white select-none gap-0">
-          {headlineLines.map((line, i) => (
-            <span 
-              key={i} 
-              className={`text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] xl:text-[6.5rem] leading-[1.05] ${line.gradient ? 'text-gradient py-1' : ''} transition-all duration-700 whitespace-nowrap px-4`}
-            >
-              {line.text}
-            </span>
-          ))}
+        {/* Massive Headline - Editorial Lockdown */}
+        <h1 className="text-6xl sm:text-8xl md:text-9xl lg:text-[11vw] font-heading font-bold tracking-[-0.06em] leading-[0.8] mb-16 text-balance drop-shadow-2xl">
+          <span className="block text-reveal-mask text-white mb-2">
+            {data.heroHeadline.split(' ').slice(0, 2).join(' ')}
+          </span>
+          <span className="block text-reveal-mask text-white/20 italic" style={{animationDelay: '0.2s'}}>
+            {data.heroHeadline.split(' ').slice(2).join(' ')}
+          </span>
         </h1>
 
-        <div className="max-w-xl space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
-          <p className="text-sm md:text-lg text-gray-400 leading-relaxed font-light tracking-tight px-4 md:px-0 opacity-80">
-            I am <span className="text-white font-medium">{data.name}</span>. {data.title}. 
-            I architect <span className="text-white font-medium italic underline decoration-blue-500/40 underline-offset-[8px] decoration-1">digital projects</span> that bridge the gap between concept and connection.
+        {/* Sub-description - Strategic Spacing */}
+        <div className="flex flex-col md:flex-row items-center gap-12 max-w-3xl opacity-0 animate-fade-in" style={{animationDelay: '0.6s', animationFillMode: 'forwards'}}>
+           <p className="text-lg md:text-xl text-white/30 leading-relaxed font-light text-balance text-center">
+            I am <span className="text-white font-medium">{data.name}</span>, a {data.title}. 
+            Architecting high-fidelity digital experiences where technical logic meets human intuition.
           </p>
+        </div>
 
-          {/* Action Buttons - Increased Height via padding-y (py-7) */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full pt-4">
-            <button 
-              onClick={() => scrollToSection('projects')}
-              className="w-full sm:w-auto px-12 py-7 bg-white text-black text-[10px] font-black uppercase tracking-[0.4em] rounded-full hover:bg-blue-600 hover:text-white transition-all duration-300 shadow-xl active:scale-95"
-            >
-              Explore Work
-            </button>
-            
-            <button 
-              onClick={() => scrollToSection('contact')}
-              className="w-full sm:w-auto px-12 py-7 glass text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] rounded-full hover:text-white transition-all border border-white/10 hover:border-white/20 active:scale-95"
-            >
-              Broadcast
-            </button>
-          </div>
+        {/* The Two Primary Action Buttons - "Perfect" Layout */}
+        <div className="flex flex-col sm:flex-row items-center gap-8 mt-20 opacity-0 animate-fade-in" style={{animationDelay: '0.8s', animationFillMode: 'forwards'}}>
+          <button 
+            onClick={() => scrollToSection('projects')}
+            className="group relative px-14 py-6 bg-white text-black text-[11px] font-black uppercase tracking-[0.5em] rounded-full overflow-hidden transition-all duration-500 hover:scale-105 active:scale-95 shadow-[0_20px_50px_rgba(255,255,255,0.15)]"
+          >
+            Explore Work
+          </button>
+          
+          <button 
+            onClick={() => scrollToSection('contact')}
+            className="px-14 py-6 glass-premium text-white/60 text-[11px] font-black uppercase tracking-[0.5em] rounded-full hover:text-white transition-all hover:bg-white/[0.05] border-white/10"
+          >
+            Start Dialogue
+          </button>
         </div>
       </div>
 
-      {/* Aesthetic Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 opacity-20 hidden md:flex group cursor-pointer" onClick={() => scrollToSection('about')}>
-         <div className="w-[1px] h-12 bg-gradient-to-b from-blue-500 via-white/50 to-transparent group-hover:h-16 transition-all duration-500"></div>
-         <span className="text-[7px] font-black uppercase tracking-[0.5em] -rotate-90 origin-right translate-x-2 translate-y-8 text-blue-400">Scroll Archive</span>
+      {/* Modernist Scroll Prompt */}
+      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-8 opacity-20 hover:opacity-100 transition-opacity duration-1000 group">
+        <div className="h-20 w-px bg-gradient-to-b from-white via-white/50 to-transparent"></div>
+        <span className="text-[9px] font-black uppercase tracking-[0.8em] group-hover:translate-y-2 transition-transform">Scroll</span>
       </div>
     </section>
   );
